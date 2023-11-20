@@ -176,3 +176,95 @@ mutation deleteUser($deleteUserId: ID!) {
 
 variables:
 "deleteUserId" : 5
+
+## resolvers
+
+### parent
+query -> users -> favoriteMovies -> anotherLevel
+
+### context 
+is usually used for auth or getting the request
+context: () => {
+    return { userModel };
+  },
+
+### info
+returns some info about graphql request
+usually not used, does not have many use cases for simple stuff
+
+### fragments
+query ExampleQueryOfFragments {
+  users {
+    ...GetAgeAndName
+  }
+}
+
+fragment GetAgeAndName on User {
+  name
+  age
+  nationality
+}
+
+### union
+in type-defs:
+type Query {
+  users: UsersResult
+  user(id: ID!): User!
+  movies: [Movie!]!
+  movie(name: String!): Movie!
+}
+
+type UsersSuccessfulResult {
+  users: [User!]!
+}
+
+type UsersErrorResult {
+  message: String!
+}
+
+union UsersResult = UsersSuccessfulResult | UsersErrorResult
+
+in resolvers:
+UsersResult: {
+  __resolveType(obj) {
+    if (obj.users) {
+      return "UsersSuccessfulResult";
+    }
+
+    if (obj.message) {
+      return "UsersErrorResult";
+    }
+    
+    return null;
+  },
+},
+
+Query of union:
+query ExampleQueryUnion {
+  users {
+    ...on UsersSuccessfulResult {
+      users {
+        id
+        name
+        age
+      }
+    }
+
+    ...on UsersErrorResult {
+      message
+    }
+  }
+}
+
+### ! is required in GraphQL
+User!
+String!
+
+### = is else if input is null
+input CreateUserInput {
+  name: String!
+  username: String!
+  age: Int = 18 
+  nationality: Nationality = BRAZIL
+}
+

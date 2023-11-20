@@ -1,13 +1,30 @@
 const { UserList, MovieList } = require("../FakeData");
 const _ = require("lodash");
 
+/*
+# parent: query -> users -> favoriteMovies -> anotherLevel
+
+# context is usually used for auth or getting the request
+context: () => {
+    return { userModel };
+  },
+
+# info returns some info about graphql request
+usually not used, does not have many use cases for simple stuff
+
+# fragments usually used to reuse code in the client
+*/
 const resolvers = {
   Query: {
     // USER RESOLVERS
-    users: () => {
-      return UserList;
+    users: (parent, args, context, info) => {
+      // console.log(context.req.headers.host);
+      // console.log(info);
+      /* apply union below */
+      if (UserList) return { users: UserList };
+      return { message: "There was an error" };
     },
-    user: (parent, args) => {
+    user: (parent, args, context, info) => {
       const id = args.id;
       const user = _.find(UserList, { id: Number(id) });
       return user;
@@ -24,7 +41,8 @@ const resolvers = {
   },
   // CUSTOM RESOLVERS
   User: {
-    favoriteMovies: () => {
+    favoriteMovies: (parent) => {
+      // console.log(parent);
       return _.filter(
         MovieList,
         (movie) =>
@@ -59,6 +77,21 @@ const resolvers = {
     deleteUser: (parent, args) => {
       const id = args.id;
       _.remove(UserList, (user) => user.id === Number(id));
+      return null;
+    },
+  },
+
+  // Union
+  UsersResult: {
+    __resolveType(obj) {
+      if (obj.users) {
+        return "UsersSuccessfulResult";
+      }
+
+      if (obj.message) {
+        return "UsersErrorResult";
+      }
+      
       return null;
     },
   },
