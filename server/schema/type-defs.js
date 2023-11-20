@@ -49,8 +49,8 @@ const typeDefs = gql`
     BRAZIL
     INDIA
     CHILE
-    UNITED
-    STATES
+    UNITED STATES
+    PHILIPPINES
   }
 `;
 
